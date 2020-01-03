@@ -99,7 +99,8 @@ public class UmsAdminServiceImpl implements UmsAdminService {
         //密码需要客户端加密后传递
         try {
             UserDetails userDetails = loadUserByUsername(username);
-            if(!passwordEncoder.matches(password,userDetails.getPassword())){
+           /* if(!passwordEncoder.matches(password,userDetails.getPassword())){*/
+              if(!password.equals(userDetails.getPassword())){
                 throw new BadCredentialsException("密码不正确");
             }
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

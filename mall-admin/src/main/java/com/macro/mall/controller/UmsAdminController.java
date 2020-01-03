@@ -11,6 +11,9 @@ import com.macro.mall.model.UmsRole;
 import com.macro.mall.service.UmsAdminService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.ibatis.annotations.Param;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -37,6 +40,7 @@ public class UmsAdminController {
     private String tokenHeader;
     @Value("${jwt.tokenHead}")
     private String tokenHead;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @ApiOperation(value = "用户注册")
     @RequestMapping(value = "/register", method = RequestMethod.POST)
@@ -49,11 +53,26 @@ public class UmsAdminController {
         return CommonResult.success(umsAdmin);
     }
 
-    @ApiOperation(value = "登录以后返回token")
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
+      @ApiOperation(value = "登录以后返回token")
+      @RequestMapping(value = "/login")
+      @ResponseBody
+      public CommonResult login(@RequestBody UmsAdminLoginParam umsAdminLoginParam, BindingResult result) {
+          String token = adminService.login(umsAdminLoginParam.getUsername(), umsAdminLoginParam.getPassword());
+          if (token == null) {
+              return CommonResult.validateFailed("用户名或密码错误");
+          }
+          logger.info("用户登录:{}",umsAdminLoginParam);
+          Map<String, String> tokenMap = new HashMap<>();
+          tokenMap.put("token", token);
+          tokenMap.put("tokenHead", tokenHead);
+          return CommonResult.success(tokenMap);
+      }
+/*    @ApiOperation(value = "登录以后返回token")
+    @RequestMapping(value = "/login")
     @ResponseBody
-    public CommonResult login(@RequestBody UmsAdminLoginParam umsAdminLoginParam, BindingResult result) {
-        String token = adminService.login(umsAdminLoginParam.getUsername(), umsAdminLoginParam.getPassword());
+    public CommonResult login(@RequestParam(value = "userName", required = false) String userName,
+                              @RequestParam(value = "password", required = false) String password) {
+        String token = adminService.login(userName, password);
         if (token == null) {
             return CommonResult.validateFailed("用户名或密码错误");
         }
@@ -61,7 +80,7 @@ public class UmsAdminController {
         tokenMap.put("token", token);
         tokenMap.put("tokenHead", tokenHead);
         return CommonResult.success(tokenMap);
-    }
+    }*/
 
     @ApiOperation(value = "刷新token")
     @RequestMapping(value = "/refreshToken", method = RequestMethod.GET)
